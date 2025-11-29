@@ -34,8 +34,11 @@ echo "-- Finished Building --"
 ./build/$12
 
 
+> Tesla-T4.txt
+
 for (( d=4 ; d<=$range; d+= (d /  24 + 1)*2  ))
 do
-    ./build/$1$d
+    ./build/$1$d >> Tesla-T4.txt
 done
 
+done

@@ -17,7 +17,7 @@ fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(7, 7))
 # fig3, ax3 = plt.subplots(figsize=(8, 4))
 
 
-filenames = ["h200.txt", "alex_a100_40.txt", "bxx.txt"]
+filenames =["Tesla-T4.txt"] #["h200.txt", "alex_a100_40.txt", "genoa_l40.txt"]
 
 colors = ["#349999", "#CC1343", "#649903", "#c7aa3e"]
 
@@ -93,5 +93,6 @@ ax3.set_xlim([0, ax3.get_xlim()[1]])
 
 fig.tight_layout()
 
-plt.savefig("L40_plot.pdf", dpi=4000)
+#plt.savefig("L40_plot.pdf", dpi=4000)
+plt.savefig("roofline.png")
 plt.show()

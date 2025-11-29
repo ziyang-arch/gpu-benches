@@ -8,6 +8,7 @@ SM      	?= $(shell nvidia-smi --query-gpu=compute_cap --format=csv,noheader | h
 NVCCFLAGS   := -std=c++11 -O3 -gencode arch=compute_$(SM),code=sm_$(SM) --compiler-options="-O2 -pipe -Wall -fopenmp -g" -Xcompiler -rdynamic --generate-line-info  -Xcompiler \"-Wl,-rpath,$(CUDA_HOME)/extras/CUPTI/lib64/\"
 
 CCFLAGS     := 
+INCLUDES    := -I../../gpu-benches
 LDFLAGS     := -L/opt/cuda/lib64 -L$(CUDA_HOME)/extras/CUPTI/lib64 -lcupti -lcuda   -lnvidia-ml
 NAME 		:= roof
 PREFIX		:= .
@@ -16,6 +17,8 @@ N 			:= 100
 $(PREFIX)/cu-$(NAME)$N: main.cu Makefile series.sh
 	$(NVCC) -DPARN=$N $(NVCCFLAGS) $(INCLUDES) -o $@ $< $(LDFLAGS)
 
+$(PREFIX)/run_constant_ai: run_constant_ai.cu Makefile
+	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -o $@ $< $(LDFLAGS)
 
 main.hip: main.cu
 	hipify-perl main.cu > main.hip
@@ -26,5 +29,5 @@ $(PREFIX)/hip-$(NAME)$N: main.hip Makefile ../rocm-metrics/rocm-metrics.hpp
 
 
 clean:
-	rm -f ./$(NAME)
+	rm -f ./$(NAME) ./run_constant_ai
 
