@@ -20,6 +20,9 @@ $(PREFIX)/cu-$(NAME)$N: main.cu Makefile series.sh
 $(PREFIX)/run_constant_ai: run_constant_ai.cu Makefile
 	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -o $@ $< $(LDFLAGS)
 
+$(PREFIX)/run_constant_ai_tflops: run_constant_ai_tflops.cu Makefile
+	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -o $@ $< $(LDFLAGS)
+
 main.hip: main.cu
 	hipify-perl main.cu > main.hip
 
@@ -29,5 +32,5 @@ $(PREFIX)/hip-$(NAME)$N: main.hip Makefile ../rocm-metrics/rocm-metrics.hpp
 
 
 clean:
-	rm -f ./$(NAME) ./run_constant_ai
+	rm -f ./$(NAME) ./run_constant_ai ./run_constant_ai_tflops
 

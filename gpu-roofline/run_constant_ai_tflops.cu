@@ -3,7 +3,12 @@
 #include <omp.h>
 #include <chrono>
 #include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <sys/time.h>
 
+using namespace std;
 using namespace std::chrono;
 
 template <typename T> __global__ void initKernel(T *data, size_t data_len) {
@@ -54,6 +59,9 @@ int main(int argc, char **argv) {
   typedef float dtype;
   const int M = 4000;
   const int BLOCKSIZE = 256;
+  
+  // Sampling interval for TFLOPS measurement (default=10)
+  const int SAMPLE_INTERVAL = 1000;
 
   // Calculate N from algorithmic intensity
   // AI = (2.0 + N * 2.0) / (2.0 * sizeof(dtype))
@@ -100,11 +108,58 @@ int main(int argc, char **argv) {
     auto start_time = steady_clock::now();
     auto end_time = start_time + duration<double>(duration_sec);
 
+    // Calculate operations per kernel launch
+    // Each kernel does: (2 + N * 2) operations per element
+    size_t operations_per_kernel = (2 + N * 2) * data_len;
+
+    // CUDA events for timing sampled kernels
+    cudaEvent_t sample_start, sample_stop;
+    GPU_ERROR(cudaEventCreate(&sample_start));
+    GPU_ERROR(cudaEventCreate(&sample_stop));
+
+    size_t iter_count = 0;
+
     // Run kernels continuously until time expires
     while (steady_clock::now() < end_time) {
+      // Sample TFLOPS every SAMPLE_INTERVAL iterations
+      bool should_sample = (iter_count % SAMPLE_INTERVAL == 0);
+      
+      if (should_sample) {
+        GPU_ERROR(cudaEventRecord(sample_start));
+      }
+      
       testfun_runtime<dtype, M, BLOCKSIZE><<<blockCount, BLOCKSIZE>>>(dA, dB, dC, N);
+      
+      if (should_sample) {
+        GPU_ERROR(cudaEventRecord(sample_stop));
+        GPU_ERROR(cudaEventSynchronize(sample_stop));
+        
+        // Get timestamp in microseconds since epoch
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        long long timestamp_us = (long long)tv.tv_sec * 1000000LL + (long long)tv.tv_usec;
+        
+        // Calculate elapsed time for this kernel
+        float elapsed_ms;
+        GPU_ERROR(cudaEventElapsedTime(&elapsed_ms, sample_start, sample_stop));
+        double elapsed_sec = elapsed_ms / 1000.0;
+        
+        // Calculate TFLOPS
+        double tflops = (operations_per_kernel / elapsed_sec) / 1.0e12;
+        
+        // Log: timestamp_us,tflops
+        // INSERT_YOUR_CODE
+        
+        std::ostringstream oss;
+        oss << "gpu" << deviceId << "," << timestamp_us << "," << fixed << setprecision(6) << tflops <<"\n";
+        cout << oss.str();
+      }
+      
+      iter_count++;
     }
 
+    GPU_ERROR(cudaEventDestroy(sample_start));
+    GPU_ERROR(cudaEventDestroy(sample_stop));
     GPU_ERROR(cudaDeviceSynchronize());
     GPU_ERROR(cudaGetLastError());
     GPU_ERROR(cudaFree(dA));
