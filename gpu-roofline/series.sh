@@ -34,11 +34,11 @@ echo "-- Finished Building --"
 ./build/$12
 
 
-> Tesla-T4.txt
+> gcloud-A100.txt
 
 for (( d=4 ; d<=$range; d+= (d /  24 + 1)*2  ))
 do
-    ./build/$1$d >> Tesla-T4.txt
+    ./build/$1$d >> gcloud-A100.txt
 done
 
 done
