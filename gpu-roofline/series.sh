@@ -33,12 +33,15 @@ echo "-- Finished Building --"
 ./build/$11
 ./build/$12
 
+if [ -n "$2" ]; then
+    output_file="$2"
+else
+    output_file="Tesla-T4.txt"
+fi
 
-> Tesla-T4.txt
+> "$output_file"
 
 for (( d=4 ; d<=$range; d+= (d /  24 + 1)*2  ))
 do
-    ./build/$1$d >> Tesla-T4.txt
-done
-
+    ./build/$1$d >> "$output_file"
 done
